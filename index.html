@@ -1,62 +1,734 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SO.GA WATCHDOG</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03070a">
+<title>SO.GA WATCHDOG — Civic Intelligence / V11</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#04070a;--cyan:#00eaff;--green:#61ffad;--red:#ff536d;--amber:#ffc857}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#eafcff;font-family:Inter,system-ui,sans-serif}
-body:before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,234,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,234,255,.025) 1px,transparent 1px);background-size:34px 34px;pointer-events:none}
-button,input{font:inherit}.app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
-header{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(0,234,255,.14);background:rgba(3,7,10,.86);backdrop-filter:blur(18px);z-index:10}
-.logo{font-weight:850;letter-spacing:.17em}.logo b{color:var(--cyan)}.live{font:10px monospace;letter-spacing:.14em;color:var(--green)}.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);margin-right:7px}
-main{position:relative;flex:1;min-height:0}.map{position:absolute;inset:0;background:radial-gradient(circle at 55% 45%,rgba(0,234,255,.13),transparent 22%),linear-gradient(135deg,#071014,#111b1d 48%,#050b0e)}
-.map:after{content:"GHAZIABAD • 28.6692 N 77.4538 E";position:absolute;right:18px;bottom:18px;color:rgba(160,210,220,.35);font:9px monospace;letter-spacing:.12em}
-.roads{position:absolute;inset:-20%;opacity:.55;background:repeating-linear-gradient(29deg,transparent 0 55px,rgba(180,230,235,.065) 56px 59px,transparent 60px 120px),repeating-linear-gradient(151deg,transparent 0 91px,rgba(180,230,235,.045) 92px 95px,transparent 96px 160px)}
-.river{position:absolute;width:180%;height:85px;left:-35%;top:58%;transform:rotate(-12deg);background:rgba(0,150,180,.13);border-top:1px solid rgba(0,234,255,.18);border-bottom:1px solid rgba(0,234,255,.08)}
-.scan{position:absolute;left:0;right:0;top:20%;height:1px;background:var(--cyan);opacity:.25;box-shadow:0 0 22px var(--cyan);animation:scan 6s linear infinite}@keyframes scan{to{top:88%}}
-.marker{position:absolute;width:17px;height:17px;border:2px solid var(--cyan);border-radius:50%;background:#06151a;box-shadow:0 0 0 7px rgba(0,234,255,.06),0 0 20px var(--cyan);cursor:pointer;z-index:3}.marker:hover{transform:scale(1.25)}.red{border-color:var(--red);box-shadow:0 0 0 7px rgba(255,83,109,.07),0 0 20px var(--red)}.amber{border-color:var(--amber);box-shadow:0 0 0 7px rgba(255,200,87,.07),0 0 20px var(--amber)}
-.m1{left:25%;top:31%}.m2{left:59%;top:39%}.m3{left:73%;top:56%}.m4{left:43%;top:67%}.m5{left:79%;top:27%}.m6{left:18%;top:63%}
-.panel{background:rgba(4,10,14,.76);border:1px solid rgba(0,234,255,.17);border-radius:12px;box-shadow:0 12px 45px rgba(0,0,0,.4),inset 0 0 25px rgba(0,234,255,.025);backdrop-filter:blur(15px)}
-.stats{position:absolute;left:16px;top:16px;display:flex;z-index:4}.stat{padding:11px 15px;border-right:1px solid rgba(255,255,255,.07)}.num{font:700 19px monospace;color:var(--cyan)}.label{font:9px monospace;color:#70858d;letter-spacing:.12em;margin-top:3px}
-.filters{position:absolute;left:16px;right:16px;top:83px;padding:8px;display:flex;gap:7px;overflow:auto;z-index:4}.chip{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.025);color:#8da2a8;border-radius:99px;padding:7px 10px;font:9px monospace;white-space:nowrap;cursor:pointer}.chip.on{color:var(--cyan);border-color:rgba(0,234,255,.45);background:rgba(0,234,255,.07)}
-.issue{position:absolute;right:17px;bottom:18px;width:315px;padding:15px;z-index:4}.eyebrow{font:9px monospace;color:var(--cyan);letter-spacing:.15em}.title{font-weight:750;margin:7px 0}.meta{font:9px monospace;color:#73888f;line-height:1.8}.status{display:inline-block;margin-top:9px;border:1px solid rgba(255,200,87,.4);color:var(--amber);padding:5px 7px;border-radius:5px;font:9px monospace}
-.report{position:absolute;left:17px;bottom:18px;padding:12px 15px;background:#06151a;border:1px solid rgba(0,234,255,.5);color:#dffcff;border-radius:9px;font:10px monospace;letter-spacing:.09em;cursor:pointer;z-index:5}.report:hover{box-shadow:0 0 25px rgba(0,234,255,.15)}
-nav{display:none}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:30;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.dialog{width:min(500px,100%);padding:20px}.dialog h2{font:700 17px monospace;color:var(--cyan);margin:0 0 16px}.step{display:none}.step.active{display:block}.options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.option{padding:13px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.025);color:#c9dde1;text-align:left;cursor:pointer}.option:hover{border-color:var(--cyan)}.field{width:100%;padding:11px;border:1px solid rgba(255,255,255,.1);background:#050a0d;color:white;border-radius:8px;outline:0;margin:6px 0 12px}.actions{display:flex;justify-content:space-between;margin-top:14px}.act{padding:9px 13px;border-radius:7px;border:1px solid rgba(0,234,255,.35);background:rgba(0,234,255,.06);color:var(--cyan);cursor:pointer;font:10px monospace}.success{text-align:center;padding:25px}.success .id{font:700 21px monospace;color:var(--green);margin:15px 0}
-@media(max-width:700px){header{height:60px;padding:0 13px}.stats{left:9px;right:9px;top:9px;overflow:auto}.stat{min-width:91px;padding:9px 11px}.num{font-size:16px}.filters{left:9px;right:9px;top:76px}.issue{left:9px;right:9px;bottom:69px;width:auto}.report{left:9px;bottom:69px;transform:translateY(-125px)}nav{display:flex;position:absolute;left:0;right:0;bottom:0;height:58px;background:rgba(3,7,10,.95);border-top:1px solid rgba(0,234,255,.13);z-index:20;justify-content:space-around;align-items:center}nav button{background:none;border:0;color:#72868d;font:9px monospace}nav button b{display:block;font-size:16px;margin-bottom:2px}nav button.active{color:var(--cyan)}.options{grid-template-columns:1fr}}
+:root{
+ --bg:#020609;--panel:rgba(4,11,15,.78);--panel2:rgba(5,14,19,.9);
+ --line:rgba(80,226,239,.16);--line2:rgba(80,226,239,.32);
+ --cyan:#38e8f4;--cyan2:#00a9bd;--green:#67f7a8;--amber:#ffc75a;--red:#ff5b70;
+ --text:#edfafd;--muted:#81989f;--muted2:#5a7179;--cyan-soft:rgba(56,232,244,.08);
+ --shadow:0 18px 70px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.035);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}
+body:before{content:"";position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.24;background-image:linear-gradient(rgba(56,232,244,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(56,232,244,.035) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+body:after{content:"";position:fixed;inset:0;z-index:51;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.42) 100%)}
+.app{height:100%;position:relative;background:#020608}
+#map{position:absolute;inset:0;z-index:0;background:#071014}
+.leaflet-container{background:#071014}
+.leaflet-control-zoom{display:none}
+.leaflet-control-attribution{background:rgba(2,7,9,.65)!important;color:#557078!important;font:8px ui-monospace,monospace!important}
+.leaflet-control-attribution a{color:#6c9ca4!important}
+.leaflet-tile{filter:brightness(.38) saturate(.45) contrast(1.15) hue-rotate(145deg)}
+.map-wash{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 0 18%,rgba(0,9,12,.12) 48%,rgba(0,4,6,.58) 100%)}
+.grid{position:absolute;inset:0;z-index:2;pointer-events:none;background-image:linear-gradient(rgba(0,220,235,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,220,235,.045) 1px,transparent 1px);background-size:80px 80px;mix-blend-mode:screen}
+.scan{position:absolute;z-index:3;left:0;right:0;height:1px;top:15%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(56,232,244,.7),transparent);box-shadow:0 0 25px 2px rgba(56,232,244,.22);animation:scan 8s linear infinite}
+@keyframes scan{50%{top:82%}100%{top:15%}}
+.topbar{position:absolute;z-index:20;left:18px;right:18px;top:14px;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border:1px solid var(--line);background:rgba(2,7,10,.82);backdrop-filter:blur(20px);box-shadow:var(--shadow);border-radius:15px;isolation:isolate}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:34px;height:34px;border:1px solid var(--line2);display:grid;place-items:center;border-radius:10px;position:relative;box-shadow:0 0 25px rgba(56,232,244,.08)}
+.brand-mark:before,.brand-mark:after{content:"";position:absolute;border:1px solid var(--cyan);opacity:.65}
+.brand-mark:before{inset:8px;border-radius:50%}.brand-mark:after{width:4px;height:4px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.brand-name{font-size:12px;font-weight:800;letter-spacing:.2em;text-shadow:0 0 18px rgba(56,232,244,.08)}.brand-sub{font:8px ui-monospace,monospace;color:var(--muted);letter-spacing:.14em;margin-top:3px}
+.top-actions{display:flex;align-items:center;gap:8px}.top-btn{height:36px;padding:0 11px;border:1px solid var(--line);background:rgba(255,255,255,.025);color:#a7c1c7;border-radius:9px;font:9px ui-monospace,monospace;letter-spacing:.1em}.top-btn:hover{border-color:var(--line2);color:var(--text);background:rgba(56,232,244,.055)}
+.live{display:flex;align-items:center;gap:7px;padding:0 9px;color:var(--green);font:9px ui-monospace,monospace;letter-spacing:.12em}.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.35;transform:scale(.7)}}
+.left-rail{position:absolute;z-index:10;left:18px;top:92px;width:278px;display:flex;flex-direction:column;gap:9px}
+.hud{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);box-shadow:var(--shadow);border-radius:14px}
+.coordinates{padding:13px 14px}.kicker{font:8px ui-monospace,monospace;color:var(--muted2);letter-spacing:.17em}.coords{display:flex;justify-content:space-between;margin-top:7px;font:10px ui-monospace,monospace;color:#b4d2d7}.coords b{color:var(--cyan);font-weight:500}
+.stats{display:grid;grid-template-columns:1fr 1fr}.stat{padding:14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.stat:nth-child(2n){border-right:0}.stat:nth-last-child(-n+2){border-bottom:0}.stat-num{font:600 21px ui-monospace,monospace;color:var(--cyan);letter-spacing:-.04em}.stat-num.green{color:var(--green)}.stat-label{font:7px ui-monospace,monospace;color:var(--muted);letter-spacing:.14em;margin-top:5px}
+.filters{padding:12px}.filter-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.filter-head span:last-child{font:8px ui-monospace,monospace;color:var(--cyan)}.chips{display:flex;flex-wrap:wrap;gap:5px}.chip{padding:7px 8px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:rgba(255,255,255,.018);color:#789097;font:7px ui-monospace,monospace;letter-spacing:.05em}.chip:hover,.chip.active{border-color:rgba(56,232,244,.45);background:rgba(56,232,244,.065);color:var(--cyan)}
+.search{display:flex;align-items:center;gap:8px;padding:9px 11px}.search svg{color:var(--muted)}.search input{min-width:0;width:100%;background:none;border:0;outline:0;color:var(--text);font-size:11px}.search input::placeholder{color:#52666d}
+.right-rail{position:absolute;z-index:10;right:18px;top:92px;width:360px;bottom:86px;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+.intel{pointer-events:auto;padding:16px;border-color:rgba(56,232,244,.24)}.intel-top{display:flex;justify-content:space-between;align-items:flex-start}.eyebrow{font:8px ui-monospace,monospace;color:var(--cyan);letter-spacing:.17em}.severity{font:7px ui-monospace,monospace;padding:5px 7px;border:1px solid rgba(255,91,112,.35);color:var(--red);border-radius:5px}.intel h2{font-size:19px;line-height:1.18;margin:9px 0 8px;letter-spacing:-.03em}.intel-desc{font-size:10px;line-height:1.55;color:#8ea6ad}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.meta-box{padding:9px;border:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.018);border-radius:8px}.meta-box span{display:block;font:7px ui-monospace,monospace;color:var(--muted2);letter-spacing:.1em}.meta-box b{display:block;font:9px ui-monospace,monospace;color:#bcd5da;margin-top:4px;font-weight:500}.intel-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.btn{height:37px;border-radius:9px;border:1px solid var(--line2);background:rgba(56,232,244,.055);color:var(--cyan);font:8px ui-monospace,monospace;letter-spacing:.08em}.btn:hover{background:rgba(56,232,244,.11);box-shadow:0 0 25px rgba(56,232,244,.07)}.btn.secondary{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.025);color:#9ab0b6}
+.timeline{padding:13px}.timeline-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.timeline-list{display:flex;flex-direction:column;gap:9px}.event{display:grid;grid-template-columns:8px 1fr auto;gap:9px;align-items:start}.event-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-top:4px}.event-dot.green{background:var(--green);box-shadow:0 0 8px var(--green)}.event-dot.amber{background:var(--amber);box-shadow:0 0 8px var(--amber)}.event-text{font-size:9px;color:#9eb6bc;line-height:1.35}.event-text b{color:#d6ebee;font-weight:600}.event-time{font:7px ui-monospace,monospace;color:var(--muted2)}
+.map-controls{position:absolute;z-index:10;right:18px;bottom:18px;display:flex;gap:6px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.35))}.map-control{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:rgba(2,8,10,.82);backdrop-filter:blur(15px);color:#8ea9b0}.map-control:hover{color:var(--cyan);border-color:var(--line2)}
+.report-fab{position:absolute;z-index:15;left:18px;bottom:20px;height:42px;padding:0 13px;display:flex;align-items:center;gap:8px;border:1px solid rgba(56,232,244,.62);border-radius:11px;background:linear-gradient(180deg,rgba(13,37,43,.96),rgba(4,14,18,.96));color:#dcfcff;box-shadow:0 0 35px rgba(56,232,244,.1),var(--shadow);font:8px ui-monospace,monospace;letter-spacing:.11em}.report-fab:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.bottom{display:none}
+.legend{position:absolute;z-index:8;left:50%;bottom:17px;transform:translateX(-50%);display:flex;gap:14px;padding:8px 12px;border:1px solid var(--line);background:rgba(2,8,10,.62);backdrop-filter:blur(12px);border-radius:9px;font:7px ui-monospace,monospace;color:#789097}.legend span{display:flex;align-items:center;gap:5px}.lg{width:6px;height:6px;border-radius:50%}.lg.c{background:var(--cyan);box-shadow:0 0 7px var(--cyan)}.lg.a{background:var(--amber);box-shadow:0 0 7px var(--amber)}.lg.r{background:var(--red);box-shadow:0 0 7px var(--red)}.lg.g{background:var(--green);box-shadow:0 0 7px var(--green)}
+/* marker */
+.civic-marker{width:20px;height:20px;border-radius:50%;position:relative;border:1px solid currentColor;background:rgba(3,13,17,.92);box-shadow:0 0 0 5px color-mix(in srgb,currentColor 10%,transparent),0 0 18px currentColor;display:grid;place-items:center}.civic-marker:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}.civic-marker:after{content:"";position:absolute;inset:-8px;border:1px solid currentColor;border-radius:50%;opacity:.28;animation:ring 2.4s ease-out infinite}.civic-marker.amber{color:var(--amber)}.civic-marker.red{color:var(--red)}.civic-marker.green{color:var(--green)}.civic-marker.cyan{color:var(--cyan)}@keyframes ring{to{transform:scale(1.7);opacity:0}}
+.leaflet-marker-icon{background:none!important;border:0!important}
+/* modal */
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,2,4,.74);backdrop-filter:blur(15px)}.modal.open{display:flex}.sheet{width:min(640px,100%);max-height:min(760px,92vh);overflow:auto;border:1px solid var(--line2);border-radius:18px;background:rgba(4,11,15,.96);box-shadow:0 30px 100px rgba(0,0,0,.75),0 0 70px rgba(56,232,244,.06)}.sheet-head{display:flex;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}.sheet-head h3{margin:0;font:600 13px ui-monospace,monospace;letter-spacing:.12em;color:var(--cyan)}.close{background:none;border:0;color:#668087;font-size:20px}.progress{height:2px;background:rgba(255,255,255,.06)}.progress i{display:block;height:100%;width:16.66%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);transition:.3s}.step{display:none;padding:20px}.step.active{display:block}.step-title{font-size:21px;font-weight:650;margin:0 0 7px;letter-spacing:-.025em}.step-sub{font-size:10px;color:var(--muted);margin:0 0 18px}.options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.opt{min-height:72px;text-align:left;padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.018);color:#b5cbd0}.opt strong{display:block;font-size:11px;color:#dcecef;margin-bottom:5px}.opt small{font:7px ui-monospace,monospace;color:var(--muted2)}.opt:hover,.opt.selected{border-color:var(--line2);background:rgba(56,232,244,.065);box-shadow:inset 0 0 20px rgba(56,232,244,.025)}.upload{border:1px dashed rgba(56,232,244,.25);border-radius:12px;min-height:170px;display:grid;place-items:center;text-align:center;color:var(--muted);background:rgba(56,232,244,.018)}.upload b{display:block;color:#c7e1e5;font-size:12px;margin-bottom:5px}.field{width:100%;padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:#02080b;color:#dff7fa;outline:0;margin-bottom:10px;font-size:11px}.field:focus{border-color:var(--line2);box-shadow:0 0 0 3px rgba(56,232,244,.04)}textarea{resize:vertical}.fake-map{height:190px;border-radius:12px;border:1px solid var(--line);position:relative;overflow:hidden;background:radial-gradient(circle at 53% 48%,rgba(56,232,244,.2),transparent 12%),repeating-linear-gradient(28deg,transparent 0 34px,rgba(56,232,244,.08) 35px 37px),#071014}.fake-map:after{content:"LOCATION LOCKED";position:absolute;left:12px;top:10px;font:7px ui-monospace,monospace;color:var(--green);letter-spacing:.14em}.pin{position:absolute;left:53%;top:48%;width:18px;height:18px;border:1px solid var(--cyan);border-radius:50%;box-shadow:0 0 25px var(--cyan);transform:translate(-50%,-50%)}.pin:after{content:"";position:absolute;inset:-12px;border:1px solid rgba(56,232,244,.35);border-radius:50%;animation:ring 2s infinite}.actions{display:flex;justify-content:space-between;gap:8px;margin-top:18px}.actions .btn{padding:0 15px}.success{text-align:center;padding:28px 10px}.success-ring{width:70px;height:70px;margin:0 auto 18px;border:1px solid var(--green);border-radius:50%;display:grid;place-items:center;color:var(--green);font-size:28px;box-shadow:0 0 35px rgba(103,247,168,.13)}.report-id{font:700 22px ui-monospace,monospace;color:var(--green);letter-spacing:.04em}.muted{color:var(--muted);font-size:10px;line-height:1.5}
+.toast{position:fixed;z-index:200;left:50%;bottom:92px;transform:translate(-50%,20px);opacity:0;padding:10px 14px;border:1px solid var(--line);background:rgba(3,10,13,.94);border-radius:9px;color:#bfe2e7;font:8px ui-monospace,monospace;pointer-events:none;transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){.left-rail{width:240px}.right-rail{width:300px}.legend{display:none}}
+@media(max-width:700px){
+ .topbar{left:8px;right:8px;top:8px;height:54px;border-radius:12px;padding:0 10px}.brand-mark{width:29px;height:29px}.brand-name{font-size:10px}.brand-sub{display:none}.top-btn{display:none}.live{font-size:7px;padding:0}
+ .left-rail{left:8px;right:8px;top:70px;width:auto;gap:7px}.coordinates{display:none}.search{padding:8px 10px}.stats{grid-template-columns:repeat(4,1fr)}.stat{padding:9px 7px;text-align:center}.stat-num{font-size:14px}.stat-label{font-size:5.5px;letter-spacing:.08em}
+ .filters{padding:8px;overflow:hidden}.filter-head{margin-bottom:6px}.chips{flex-wrap:nowrap;overflow:auto}.chip{flex:none}
+ .right-rail{left:8px;right:8px;top:auto;bottom:72px;width:auto;height:auto}.intel{padding:12px}.intel h2{font-size:15px;margin:7px 0}.intel-desc{display:none}.meta-grid{margin:9px 0;gap:5px}.meta-box{padding:7px}.intel-actions{grid-template-columns:1fr 1fr}.timeline{display:none}
+ .report-fab{left:50%;bottom:78px;transform:translateX(-50%);height:38px;padding:0 12px;gap:6px;white-space:nowrap;font-size:7px;border-radius:9px;box-shadow:0 10px 28px rgba(0,0,0,.42),0 0 22px rgba(56,232,244,.08)}
+ .report-fab:hover{transform:translateX(-50%) translateY(-2px)}
+ .map-controls{right:8px;bottom:132px;flex-direction:column}.map-control{width:34px;height:34px}
+ .bottom{position:absolute;display:flex;z-index:30;left:0;right:0;bottom:0;height:61px;background:rgba(2,7,10,.94);border-top:1px solid var(--line);justify-content:space-around;align-items:center;backdrop-filter:blur(18px)}.bottom button{border:0;background:none;color:#587078;font:6px ui-monospace,monospace;letter-spacing:.08em}.bottom button span{display:block;font-size:17px;margin-bottom:3px}.bottom button.active{color:var(--cyan)}
+ .modal{padding:0;align-items:flex-end}.sheet{border-radius:18px 18px 0 0;max-height:94vh}.step{padding:17px}.options{grid-template-columns:1fr 1fr}.opt{min-height:63px}.step-title{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* V11: collision-proof report action */
+.report-cta{
+  left: 18px !important;
+  bottom: 18px !important;
+  z-index: 850 !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 36px) !important;
+  white-space: nowrap !important;
+}
+
+/* Never allow the CTA to sit on top of the Leaflet control stack. */
+.leaflet-control-container .leaflet-bottom{
+  bottom: 0;
+}
+
+@media (min-width: 901px){
+  .report-cta{
+    left: 338px !important;
+    bottom: 18px !important;
+  }
+}
+
+@media (max-width: 900px){
+  .report-cta{
+    left: 50% !important;
+    right: auto !important;
+    bottom: 88px !important;
+    transform: translateX(-50%) !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 11px !important;
+    font-size: 10px !important;
+  }
+  .report-cta.is-hidden{
+    transform: translateX(-50%) translateY(10px) !important;
+  }
+
+  /* Keep the mobile map controls clear of the report action. */
+  .leaflet-bottom.leaflet-right{
+    bottom: 132px !important;
+  }
+  .leaflet-bottom.leaflet-left{
+    bottom: 132px !important;
+  }
+}
+
+@media (max-width: 520px){
+  .report-cta{
+    bottom: 84px !important;
+  }
+  .leaflet-bottom.leaflet-right,
+  .leaflet-bottom.leaflet-left{
+    bottom: 124px !important;
+  }
+}
+
+
+/* V11: reference-matched mobile composition */
+.report-fab{display:none!important}
+
+.bottom{
+  height:78px;
+  padding:0 10px;
+  border-top:1px solid rgba(56,232,244,.10);
+  background:linear-gradient(180deg,rgba(2,8,11,.78),rgba(1,6,9,.97));
+}
+.bottom button{
+  position:relative;
+  flex:1;
+  max-width:25%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+  color:#587078;
+  font:8px ui-monospace,monospace;
+  letter-spacing:.14em;
+}
+.bottom button span{
+  margin:0;
+  font-size:22px;
+  line-height:1;
+}
+.bottom button.active{color:var(--cyan)}
+.bottom button.active:after{
+  content:"";
+  position:absolute;
+  left:20%;
+  right:20%;
+  bottom:0;
+  height:2px;
+  background:var(--cyan);
+  box-shadow:0 0 14px rgba(56,232,244,.7);
+}
+.bottom .report-nav{
+  margin:10px 4px;
+  height:58px;
+  max-width:none;
+  flex:1.08;
+  flex-direction:row;
+  gap:8px;
+  border:1px solid rgba(56,232,244,.9);
+  border-radius:14px;
+  color:#dcfcff;
+  background:linear-gradient(180deg,rgba(7,35,41,.95),rgba(3,15,19,.98));
+  box-shadow:0 0 25px rgba(56,232,244,.10),inset 0 0 22px rgba(56,232,244,.035);
+  font-size:9px;
+}
+.bottom .report-nav span{font-size:26px;color:var(--cyan)}
+.bottom .report-nav:after{display:none}
+
+@media(max-width:700px){
+  .right-rail{
+    bottom:82px;
+  }
+  .map-controls{
+    bottom:170px;
+  }
+}
+@media(max-width:520px){
+  .bottom{height:78px}
+  .right-rail{bottom:82px}
+  .map-controls{bottom:170px}
+}
+
+
+/* V11: citizen identity + reward economy */
+.account-sheet{width:min(520px,100%)}
+.account-kicker{margin-top:5px;font:7px ui-monospace,monospace;color:#6f8990;letter-spacing:.12em}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;padding:12px 20px 0;gap:5px}
+.auth-tab{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:8px 8px 0 0;background:rgba(255,255,255,.015);color:#607980;font:8px ui-monospace,monospace;letter-spacing:.1em}
+.auth-tab.active{color:var(--cyan);border-color:rgba(56,232,244,.38);background:rgba(56,232,244,.05)}
+.auth-view{display:none;padding:20px}
+.auth-view.active{display:block}
+.auth-view h2{margin:0 0 7px;font-size:22px;letter-spacing:-.03em}
+.auth-view p{margin:0 0 17px;color:#789097;font-size:10px;line-height:1.5}
+.account-submit{width:100%;height:44px}
+.auth-note{margin-top:10px;text-align:center;color:#50666c;font:7px ui-monospace,monospace;line-height:1.5}
+.reward-preview,.rewards-section{margin:0 20px 20px;padding:14px;border:1px solid rgba(56,232,244,.12);border-radius:12px;background:rgba(56,232,244,.018)}
+.reward-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;font:8px ui-monospace,monospace;letter-spacing:.11em;color:#8ea9b0}
+.reward-head span{color:var(--cyan)}
+.reward-head b{font-weight:500;color:#536a70}
+.reward-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.reward-grid div{padding:9px;border:1px solid rgba(255,255,255,.055);border-radius:8px}
+.reward-grid strong{display:block;color:var(--cyan);font:10px ui-monospace,monospace;margin-bottom:3px}
+.reward-grid span{font-size:9px;color:#91a8ae}
+.reward-rule{margin-top:10px;color:#526a71;font:6px ui-monospace,monospace;letter-spacing:.08em;line-height:1.55}
+.profile-hero{display:flex;align-items:center;gap:11px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.avatar{width:46px;height:46px;border:1px solid var(--cyan);border-radius:50%;display:grid;place-items:center;color:var(--cyan);font:11px ui-monospace,monospace;box-shadow:0 0 25px rgba(56,232,244,.09)}
+.profile-hero b{display:block;color:#d9edef;font-size:13px}
+.profile-hero span{display:block;margin-top:4px;color:#5f777e;font:7px ui-monospace,monospace}
+.verified{margin-left:auto;color:var(--green);font:7px ui-monospace,monospace}
+.credit-card{margin:16px 20px;padding:16px;border:1px solid rgba(56,232,244,.3);border-radius:12px;background:linear-gradient(135deg,rgba(56,232,244,.07),rgba(3,12,16,.75))}
+.credit-card div:first-child{display:flex;justify-content:space-between;align-items:end}
+.credit-card span{color:#6e888f;font:7px ui-monospace,monospace;letter-spacing:.12em}
+.credit-card strong{color:var(--cyan);font:700 30px ui-monospace,monospace}
+.credit-progress{height:4px;margin-top:12px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.credit-progress i{display:block;width:80%;height:100%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.credit-card p{margin:8px 0 0;color:#607980;font:7px ui-monospace,monospace}
+.profile-stats{display:grid;grid-template-columns:repeat(4,1fr);margin:0 20px 16px;border:1px solid rgba(255,255,255,.06);border-radius:10px;overflow:hidden}
+.profile-stats div{padding:11px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.06)}
+.profile-stats div:last-child{border-right:0}
+.profile-stats strong{display:block;color:#cfe5e8;font:14px ui-monospace,monospace}
+.profile-stats span{display:block;margin-top:4px;color:#5d747b;font:6px ui-monospace,monospace}
+.coupon{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid rgba(255,255,255,.055)}
+.coupon:first-of-type{border-top:0}
+.coupon strong{display:block;color:#e2f7f9;font-size:12px}
+.coupon span{display:block;margin-top:4px;color:#698087;font-size:8px}
+.coupon .btn{height:32px;padding:0 9px;font-size:6px;white-space:nowrap}
+.coupon .locked{opacity:.48}
+.top-actions #topProfile{cursor:pointer}
+
+
+/* V11: full citizen rewards wallet */
+.wallet-sheet{max-height:min(92vh,760px);overflow:auto}
+.wallet-hero{margin:16px 20px;padding:16px;border:1px solid rgba(56,232,244,.25);border-radius:14px;background:linear-gradient(145deg,rgba(56,232,244,.065),rgba(2,11,15,.9));box-shadow:inset 0 0 30px rgba(56,232,244,.025)}
+.wallet-id{display:flex;align-items:center;gap:10px}
+.wallet-id b{display:block;color:#dceff1;font-size:13px}
+.wallet-id span{display:block;margin-top:4px;color:#5f777e;font:7px ui-monospace,monospace;letter-spacing:.08em}
+.wallet-balance{display:flex;align-items:end;justify-content:space-between;margin-top:15px}
+.wallet-balance span{color:#6e888f;font:7px ui-monospace,monospace;letter-spacing:.12em}
+.wallet-balance strong{color:var(--cyan);font:700 34px ui-monospace,monospace}
+.wallet-hero .credit-progress{margin-top:10px}
+.wallet-hero p{margin:8px 0 0;color:#607980;font:7px ui-monospace,monospace}
+.wallet-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:0 20px 16px;padding:4px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:rgba(255,255,255,.018)}
+.wallet-tab{height:31px;border:0;border-radius:7px;background:transparent;color:#597178;font:6px ui-monospace,monospace;letter-spacing:.09em}
+.wallet-tab.active{color:var(--cyan);background:rgba(56,232,244,.08);box-shadow:inset 0 0 0 1px rgba(56,232,244,.16)}
+.wallet-view{display:none;margin:0 20px 18px}
+.wallet-view.active{display:block}
+.wallet-section-head{display:flex;justify-content:space-between;margin-bottom:9px;color:#6d858b;font:7px ui-monospace,monospace;letter-spacing:.1em}
+.wallet-section-head span{color:var(--cyan)}
+.coupon-card{display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:7px;border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(255,255,255,.018)}
+.coupon-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid rgba(56,232,244,.28);border-radius:9px;color:var(--cyan);font:16px ui-monospace,monospace}
+.coupon-copy{min-width:0;flex:1}
+.coupon-copy strong{display:block;color:#e0f2f4;font-size:12px}
+.coupon-copy span{display:block;margin-top:3px;color:#70868d;font-size:8px}
+.coupon-copy small{display:block;margin-top:5px;color:#4f666c;font:5px ui-monospace,monospace;letter-spacing:.07em}
+.redeem-btn{height:32px;padding:0 8px;border:1px solid rgba(56,232,244,.5);border-radius:7px;background:rgba(56,232,244,.06);color:var(--cyan);font:6px ui-monospace,monospace;white-space:nowrap}
+.redeem-btn.locked{border-color:rgba(255,255,255,.07);color:#4e6369;background:transparent}
+.redeem-btn.claimed{color:var(--green);border-color:rgba(97,255,173,.45)}
+.wallet-note{margin-top:11px;color:#4e666d;font:6px ui-monospace,monospace;line-height:1.55}
+.credit-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid rgba(255,255,255,.055)}
+.credit-row i{font:700 9px ui-monospace,monospace;font-style:normal;width:38px;text-align:center}
+.credit-row .plus{color:var(--green)}
+.credit-row .minus{color:var(--red)}
+.credit-row div{flex:1}.credit-row strong{display:block;color:#cfe1e4;font-size:9px}.credit-row span{display:block;margin-top:3px;color:#5c737a;font:6px ui-monospace,monospace}
+.credit-row time{color:#50676d;font:6px ui-monospace,monospace}
+.wallet-total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:13px;border:1px solid rgba(56,232,244,.15);border-radius:9px}
+.wallet-total span{color:#607980;font:6px ui-monospace,monospace}.wallet-total strong{color:var(--cyan);font:700 20px ui-monospace,monospace}
+.impact-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(255,255,255,.055);border-radius:9px;overflow:hidden}
+.impact-grid div{text-align:center;padding:12px 3px;border-right:1px solid rgba(255,255,255,.055)}.impact-grid div:last-child{border:0}
+.impact-grid strong{display:block;color:#d5e8ea;font:14px ui-monospace,monospace}.impact-grid span{display:block;margin-top:4px;color:#5c7379;font:5px ui-monospace,monospace}
+.impact-card{margin-top:9px;padding:14px;border:1px solid rgba(56,232,244,.16);border-radius:10px;background:rgba(56,232,244,.025)}
+.impact-card span{display:block;color:#5c767d;font:6px ui-monospace,monospace;letter-spacing:.1em}.impact-card strong{display:block;margin-top:5px;color:var(--cyan);font:700 16px ui-monospace,monospace}.impact-card p{margin:7px 0 0;color:#71878d;font-size:8px;line-height:1.45}.impact-card b{color:#9bb3b8}
+.milestones{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.milestones div{display:flex;align-items:center;gap:7px;padding:8px;border:1px solid rgba(255,255,255,.05);border-radius:7px;color:#637a80;font:7px ui-monospace,monospace}.milestones i{width:7px;height:7px;border:1px solid #4e6369;border-radius:50%}.milestones i.done{border-color:var(--green);background:var(--green);box-shadow:0 0 8px rgba(97,255,173,.45)}
+
+</style>
+
+<style id="polish-pass">
+.leaflet-tile-pane{opacity:.92}
+.leaflet-marker-icon{transition:transform .2s ease,filter .2s ease}
+.leaflet-marker-icon:hover{filter:brightness(1.25)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:1px solid var(--cyan);outline-offset:3px}
+.chips::-webkit-scrollbar{height:2px}.chips::-webkit-scrollbar-thumb{background:rgba(56,232,244,.2)}
+.left-rail .hud,.right-rail .hud{animation:panelIn .55s ease both}
+.left-rail .hud:nth-child(2){animation-delay:.05s}.left-rail .hud:nth-child(3){animation-delay:.1s}.left-rail .hud:nth-child(4){animation-delay:.15s}
+.right-rail .hud:nth-child(1){animation-delay:.1s}.right-rail .hud:nth-child(2){animation-delay:.2s}
+@keyframes panelIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.stat-num{font-variant-numeric:tabular-nums}
+.meta-box b{font-variant-numeric:tabular-nums}
+.intel-actions .btn:first-child{position:relative;overflow:hidden}
+.intel-actions .btn:first-child:after{content:"";position:absolute;inset:0;transform:translateX(-120%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:buttonSweep 4s ease-in-out infinite}
+@keyframes buttonSweep{18%,100%{transform:translateX(120%)}}
+.report-fab{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.report-fab:hover{transform:translateY(-2px);box-shadow:0 10px 35px rgba(0,0,0,.4),0 0 35px rgba(56,232,244,.13);border-color:rgba(56,232,244,.9)}
+.report-fab:active{transform:translateY(0) scale(.98)}
+.leaflet-container{cursor:crosshair}
+@media(min-width:1200px){.left-rail{width:292px}.right-rail{width:375px}.intel{padding:17px}.timeline{padding:14px}}
+@media(max-width:700px){
+ .left-rail .search{box-shadow:0 10px 35px rgba(0,0,0,.3)}
+ .left-rail .stats{box-shadow:0 10px 35px rgba(0,0,0,.28)}
+ .right-rail .intel{box-shadow:0 15px 45px rgba(0,0,0,.48)}
+ .report-fab{box-shadow:0 12px 35px rgba(0,0,0,.45),0 0 25px rgba(56,232,244,.08)}
+ .leaflet-control-attribution{font-size:6px!important}
+}
+</style>
+
+<style id="city-intelligence-layer">
+.city-overlay{position:absolute;inset:0;z-index:4;pointer-events:none}
+.district-label{position:absolute;color:rgba(157,219,225,.42);font:7px ui-monospace,monospace;letter-spacing:.18em;white-space:nowrap;text-shadow:0 0 12px rgba(0,0,0,.9)}
+.district-label:before{content:"";display:inline-block;width:4px;height:4px;border:1px solid rgba(56,232,244,.5);margin-right:6px;vertical-align:1px}
+.city-line{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(56,232,244,.2),transparent);transform-origin:left center;opacity:.55}
+.density{position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,91,112,.12),rgba(255,91,112,.04) 30%,transparent 68%);filter:blur(1px)}
+.signal{position:absolute;width:110px;height:110px;border:1px solid rgba(56,232,244,.14);border-radius:50%;transform:translate(-50%,-50%)}
+.signal:before,.signal:after{content:"";position:absolute;inset:16px;border:1px solid rgba(56,232,244,.08);border-radius:50%}
+.signal:after{inset:36px}
+.map-readout{position:absolute;right:18px;top:92px;z-index:8;padding:9px 11px;color:#6f878e;font:7px ui-monospace,monospace;letter-spacing:.11em;background:rgba(2,7,10,.55);border:1px solid rgba(56,232,244,.1);border-radius:8px;backdrop-filter:blur(10px);pointer-events:none}
+.map-readout b{color:#9fc7cd;font-weight:500}
+.intel-drawer{position:absolute;z-index:80;right:18px;top:92px;width:360px;bottom:86px;display:none;overflow:auto;padding:18px;border:1px solid rgba(56,232,244,.28);border-radius:15px;background:rgba(3,10,13,.96);backdrop-filter:blur(24px);box-shadow:0 25px 90px rgba(0,0,0,.7),0 0 45px rgba(56,232,244,.06)}
+.intel-drawer.open{display:block;animation:drawerIn .25s ease}
+@keyframes drawerIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.drawer-close{float:right;border:0;background:none;color:#6f858c;font-size:20px}.drawer-close:hover{color:#dffcff}
+.drawer-photo{height:150px;margin:14px 0;border-radius:11px;border:1px solid rgba(56,232,244,.14);background:linear-gradient(135deg,rgba(56,232,244,.08),rgba(255,91,112,.07)),repeating-linear-gradient(135deg,transparent 0 16px,rgba(255,255,255,.025) 17px 18px);display:grid;place-items:center;color:#6e878e;font:7px ui-monospace,monospace;letter-spacing:.15em}
+.drawer-stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.055);font:8px ui-monospace,monospace;color:#728990}.drawer-stat b{color:#c1d9dd;font-weight:500}
+.drawer-note{margin-top:14px;padding:11px;border-left:2px solid var(--cyan);background:rgba(56,232,244,.035);font-size:9px;line-height:1.55;color:#91a9af}
+@media(max-width:700px){
+ .map-readout{display:none}.intel-drawer{left:8px;right:8px;top:auto;bottom:69px;width:auto;height:72vh}
+ .city-overlay{opacity:.65}
+}
+</style>
+
+<style id="v6-cta-patch">
+.report-fab.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(8px)}
+@media(max-width:700px){.report-fab.is-hidden{transform:translate(-50%,8px)}}
+.report-plus{font-size:13px;line-height:1;color:var(--cyan)}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="logo">SO.GA <b>WATCHDOG</b></div><div class="live"><i></i>LIVE GHAZIABAD</div></header>
-<main>
-<div class="map"><div class="roads"></div><div class="river"></div><div class="scan"></div>
-<div class="marker m1" data-title="Pothole — NH24 Service Road"></div><div class="marker red m2" data-title="Severe road damage"></div><div class="marker amber m3" data-title="Waterlogging reported"></div><div class="marker m4" data-title="Garbage accumulation"></div><div class="marker red m5" data-title="Broken streetlights"></div><div class="marker amber m6" data-title="Encroachment reported"></div></div>
-<div class="panel stats"><div class="stat"><div class="num">184</div><div class="label">LIVE REPORTS</div></div><div class="stat"><div class="num">67</div><div class="label">ACTIVE ISSUES</div></div><div class="stat"><div class="num">12</div><div class="label">RESOLVED TODAY</div></div><div class="stat"><div class="num">231</div><div class="label">CITIZEN REPORTS</div></div></div>
-<div class="panel filters"><button class="chip on">ALL</button><button class="chip">POTHOLE</button><button class="chip">WATERLOGGING</button><button class="chip">GARBAGE</button><button class="chip">STREETLIGHT</button><button class="chip">ENCROACHMENT</button><button class="chip">ROAD DAMAGE</button></div>
-<button class="report" id="reportBtn">＋ REPORT AN ISSUE</button>
-<section class="panel issue" id="issue"><div class="eyebrow">SOGA-2026-000184</div><div class="title">Severe road damage</div><div class="meta">28.66920° N · 77.45380° E<br>REPORTED 8 MIN AGO<br>3 CITIZENS CONFIRMED</div><div class="status">ACTION REQUIRED</div></section>
-<nav><button class="active"><b>⌖</b>MAP</button><button id="navReport"><b>＋</b>REPORT</button><button><b>≡</b>ACTIVITY</button><button><b>◉</b>PROFILE</button></nav>
-</main></div>
-<div class="modal" id="modal"><div class="dialog panel">
-<div class="step active" data-step="1"><h2>NEW CIVIC REPORT / 01</h2><div class="options"><button class="option">Pothole</button><button class="option">Waterlogging</button><button class="option">Road damage</button><button class="option">Garbage</button><button class="option">Broken streetlight</button><button class="option">Encroachment</button><button class="option">Illegal construction</button><button class="option">Suspected illegal activity</button></div><div class="actions"><span></span><button class="act close">CANCEL</button></div></div>
-<div class="step" data-step="2"><h2>ADD EVIDENCE / 02</h2><p style="color:#8da2a8;font-size:13px">Demo mode: photo capture/upload interface.</p><button class="act" onclick="next()">＋ SELECT PHOTO</button><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">CONTINUE</button></div></div>
-<div class="step" data-step="3"><h2>LOCATION / 03</h2><p style="color:#8da2a8;font-size:13px">GPS location captured. Confirm the point on the map.</p><div style="height:130px;border:1px solid rgba(0,234,255,.18);border-radius:9px;background:radial-gradient(circle,#07333a,#071014);display:grid;place-items:center;color:var(--cyan);font:11px monospace">◎ 28.66920 N / 77.45380 E</div><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">CONTINUE</button></div></div>
-<div class="step" data-step="4"><h2>REPORT DETAILS / 04</h2><input class="field" placeholder="Short title"><textarea class="field" rows="4" placeholder="Describe what you see..."></textarea><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">REVIEW</button></div></div>
-<div class="step" data-step="5"><h2>REVIEW / 05</h2><p style="color:#b9cdd1;font-size:13px">Your report will be published as evidence-based civic information. Sensitive reports are moderated before public display.</p><div class="panel" style="padding:12px;font:10px monospace;color:#82969d">CATEGORY: ROAD DAMAGE<br>LOCATION: GHAZIABAD<br>EVIDENCE: 1 PHOTO<br>VISIBILITY: PUBLIC AFTER REVIEW</div><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="submitReport()">SUBMIT REPORT</button></div></div>
-<div class="step" data-step="6"><div class="success"><h2>REPORT RECEIVED</h2><div class="id">SOGA-2026-000185</div><p style="color:#8da2a8">Your report has entered the verification pipeline.</p><button class="act close">RETURN TO MAP</button></div></div>
-</div></div>
+<div id="map"></div><div class="map-wash"></div>
+<div class="city-overlay" aria-hidden="true">
+  <div class="density" style="left:38%;top:43%"></div>
+  <div class="density" style="left:64%;top:61%;width:130px;height:130px"></div>
+  <div class="signal" style="left:48%;top:47%"></div>
+  <div class="signal" style="left:70%;top:36%"></div>
+  <div class="district-label" style="left:29%;top:29%">VAISHALI</div>
+  <div class="district-label" style="left:58%;top:35%">INDIRAPURAM</div>
+  <div class="district-label" style="left:67%;top:55%">RAJ NAGAR</div>
+  <div class="district-label" style="left:38%;top:68%">CROSSINGS REPUBLIK</div>
+  <div class="district-label" style="left:17%;top:61%">LONI ROAD</div>
+  <div class="district-label" style="left:71%;top:24%">SAHIBABAD</div>
+  <div class="city-line" style="left:30%;top:37%;width:30%;transform:rotate(16deg)"></div>
+  <div class="city-line" style="left:46%;top:58%;width:24%;transform:rotate(-21deg)"></div>
+</div>
+<div class="map-readout">MAP MODE <b>LIVE CIVIC DENSITY</b> &nbsp; / &nbsp; ZOOM <b id="zoomReadout">12.5</b></div>
+<div class="grid"></div><div class="scan"></div>
+
+<header class="topbar">
+ <div class="brand"><div class="brand-mark"></div><div><div class="brand-name">SO.GA <span style="color:var(--cyan)">WATCHDOG</span></div><div class="brand-sub">CIVIC INTELLIGENCE NETWORK / GHAZIABAD</div></div></div>
+ <div class="top-actions"><div class="live"><i class="live-dot"></i>LIVE GHAZIABAD</div><button class="top-btn" id="searchFocus">⌕ SEARCH</button><button class="top-btn" id="topProfile">◎ PROFILE</button></div>
+</header>
+
+<aside class="left-rail">
+ <div class="hud coordinates"><div class="kicker">CITY TELEMETRY</div><div class="coords"><span>LAT <b>28.6692° N</b></span><span>LNG <b>77.4538° E</b></span></div></div>
+ <div class="hud search"><span>⌕</span><input id="search" placeholder="Search report ID, issue or area"></div>
+ <div class="hud stats">
+  <div class="stat"><div class="stat-num" id="liveCount">184</div><div class="stat-label">LIVE REPORTS</div></div>
+  <div class="stat"><div class="stat-num" id="activeCount">67</div><div class="stat-label">ACTIVE ISSUES</div></div>
+  <div class="stat"><div class="stat-num green" id="resolvedCount">12</div><div class="stat-label">RESOLVED TODAY</div></div>
+  <div class="stat"><div class="stat-num" id="citizenCount">231</div><div class="stat-label">CITIZEN REPORTS</div></div>
+ </div>
+ <div class="hud filters">
+  <div class="filter-head"><span class="kicker">ISSUE LAYERS</span><span id="layerCount">09 ACTIVE</span></div>
+  <div class="chips">
+   <button class="chip active" data-cat="all">ALL</button><button class="chip" data-cat="pothole">POTHOLE</button><button class="chip" data-cat="water">WATERLOGGING</button><button class="chip" data-cat="road">ROAD DAMAGE</button><button class="chip" data-cat="garbage">GARBAGE</button><button class="chip" data-cat="light">STREETLIGHT</button><button class="chip" data-cat="encroach">ENCROACHMENT</button>
+  </div>
+ </div>
+</aside>
+
+<aside class="right-rail">
+ <section class="hud intel" id="intel">
+  <div class="intel-top"><div class="eyebrow" id="intelId">SOGA-2026-000184</div><div class="severity" id="intelSeverity">HIGH PRIORITY</div></div>
+  <h2 id="intelTitle">Severe road damage on NH24 service road</h2>
+  <div class="intel-desc" id="intelDesc">Multiple citizens have reported a dangerous damaged section affecting traffic flow. Evidence is under civic verification.</div>
+  <div class="meta-grid"><div class="meta-box"><span>LOCATION</span><b id="intelLocation">Indirapuram</b></div><div class="meta-box"><span>STATUS</span><b id="intelStatus">ACTION REQUIRED</b></div><div class="meta-box"><span>REPORTED</span><b id="intelTime">8 MIN AGO</b></div><div class="meta-box"><span>CONFIRMED</span><b id="intelConfirm">03 CITIZENS</b></div></div>
+  <div class="intel-actions"><button class="btn" id="confirmBtn">✓ STILL THERE</button><button class="btn secondary" id="detailBtn">VIEW INTELLIGENCE</button></div>
+ </section>
+ <section class="hud timeline">
+  <div class="timeline-head"><span class="kicker">LIVE CIVIC FEED</span><span class="kicker">AUTO</span></div>
+  <div class="timeline-list">
+   <div class="event"><i class="event-dot red"></i><div class="event-text"><b>Road damage</b> marked action required</div><span class="event-time">02:14</span></div>
+   <div class="event"><i class="event-dot"></i><div class="event-text"><b>3 citizens</b> confirmed waterlogging</div><span class="event-time">02:09</span></div>
+   <div class="event"><i class="event-dot amber"></i><div class="event-text"><b>New report</b> near Vaishali Metro</div><span class="event-time">01:58</span></div>
+   <div class="event"><i class="event-dot green"></i><div class="event-text"><b>Streetlight</b> resolution verified</div><span class="event-time">01:42</span></div>
+  </div>
+ </section>
+</aside>
+
+<div class="legend"><span><i class="lg c"></i>REPORTED</span><span><i class="lg a"></i>WARNING</span><span><i class="lg r"></i>ACTION REQUIRED</span><span><i class="lg g"></i>RESOLVED</span></div>
+<div class="map-controls"><button class="map-control" id="locate" title="Locate">⌖</button><button class="map-control" id="zoomIn">+</button><button class="map-control" id="zoomOut">−</button></div>
+
+
+<section class="intel-drawer" id="intelDrawer">
+ <button class="drawer-close" id="closeDrawer">×</button>
+ <div class="eyebrow">REPORT INTELLIGENCE</div>
+ <h2 id="drawerTitle" style="font-size:21px;line-height:1.2;margin:10px 0 4px"></h2>
+ <div id="drawerId" class="kicker"></div>
+ <div class="drawer-photo">EVIDENCE PREVIEW / CIVIC MEDIA</div>
+ <div class="drawer-stat"><span>AREA</span><b id="drawerArea"></b></div>
+ <div class="drawer-stat"><span>STATUS</span><b id="drawerStatus"></b></div>
+ <div class="drawer-stat"><span>SEVERITY</span><b id="drawerSeverity"></b></div>
+ <div class="drawer-stat"><span>COMMUNITY SIGNAL</span><b id="drawerConfirm"></b></div>
+ <div class="drawer-stat"><span>FIRST REPORTED</span><b id="drawerTime"></b></div>
+ <div class="drawer-note">Evidence is treated as civic information, not an accusation. Sensitive reports are subject to verification and moderation before public publication.</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:14px">
+   <button class="btn" id="drawerConfirmBtn">✓ STILL THERE</button>
+   <button class="btn secondary" id="drawerCloseBtn">CLOSE VIEW</button>
+ </div>
+</section>
+<nav class="bottom"><button class="active"><span>⌖</span>WATCH</button><button><span>≡</span>ACTIVITY</button><button id="profileNav"><span>◉</span>PROFILE</button><button id="mobileReport" class="report-nav"><span>＋</span>REPORT</button></nav>
+</div>
+
+
+<div class="modal" id="accountModal" aria-hidden="true">
+  <div class="sheet account-sheet">
+    <div class="sheet-head">
+      <div>
+        <h3 id="accountTitle">CITIZEN ACCOUNT</h3>
+        <div class="account-kicker" id="accountKicker">SIGN IN TO WATCH YOUR CIVIC IMPACT</div>
+      </div>
+      <button class="close" id="closeAccount" aria-label="Close">×</button>
+    </div>
+
+    <div class="account-tabs" id="authTabs">
+      <button class="auth-tab active" data-auth="login">LOGIN</button>
+      <button class="auth-tab" data-auth="signup">SIGN UP</button>
+    </div>
+
+    <div class="auth-view active" id="loginView">
+      <h2>Welcome back.</h2>
+      <p>Sign in to track your reports, confirmations and reward credits.</p>
+      <input class="field" placeholder="Mobile number or email" autocomplete="username">
+      <input class="field" placeholder="Password" type="password" autocomplete="current-password">
+      <button class="btn primary account-submit">SIGN IN</button>
+      <div class="auth-note">OTP login can be enabled for production.</div>
+    </div>
+
+    <div class="auth-view" id="signupView">
+      <h2>Create your citizen profile.</h2>
+      <p>Your profile keeps your reports connected to your civic contribution history.</p>
+      <input class="field" placeholder="Full name" autocomplete="name">
+      <input class="field" placeholder="Mobile number" autocomplete="tel">
+      <input class="field" placeholder="Email address" autocomplete="email">
+      <input class="field" placeholder="Create password" type="password" autocomplete="new-password">
+      <button class="btn primary account-submit">CREATE ACCOUNT</button>
+      <div class="auth-note">We'll verify contact details before reward redemption is enabled.</div>
+    </div>
+
+    <div class="reward-preview">
+      <div class="reward-head">
+        <span>WATCHDOG REWARDS</span><b>HOW IT WORKS</b>
+      </div>
+      <div class="reward-grid">
+        <div><strong>01</strong><span>Submit useful reports</span></div>
+        <div><strong>02</strong><span>Get verified by the system</span></div>
+        <div><strong>03</strong><span>Build civic credits</span></div>
+        <div><strong>04</strong><span>Redeem partner coupons</span></div>
+      </div>
+      <div class="reward-rule">QUALITY OVER QUANTITY · SPAM / DUPLICATE REPORTS DO NOT EARN CREDITS</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="rewardsModal" aria-hidden="true">
+  <div class="sheet account-sheet wallet-sheet">
+    <div class="sheet-head">
+      <div>
+        <h3>CITIZEN WALLET</h3>
+        <div class="account-kicker">CIVIC IMPACT + PARTNER REWARDS</div>
+      </div>
+      <button class="close" id="closeRewards" aria-label="Close">×</button>
+    </div>
+
+    <div class="wallet-hero">
+      <div class="wallet-id">
+        <div class="avatar">CW</div>
+        <div><b>Civic Watcher</b><span>GHZ • VERIFIED CITIZEN</span></div>
+      </div>
+      <div class="wallet-balance"><span>CIVIC CREDITS</span><strong>240</strong></div>
+      <div class="credit-progress"><i></i></div>
+      <p>60 credits until your next reward unlocks.</p>
+    </div>
+
+    <div class="wallet-tabs">
+      <button class="wallet-tab active" data-wallet="rewards">REWARDS</button>
+      <button class="wallet-tab" data-wallet="activity">CREDIT HISTORY</button>
+      <button class="wallet-tab" data-wallet="impact">MY IMPACT</button>
+    </div>
+
+    <div class="wallet-view active" id="rewardsWallet">
+      <div class="wallet-section-head"><span>AVAILABLE NOW</span><b>PARTNER NETWORK</b></div>
+
+      <div class="coupon-card">
+        <div class="coupon-icon">₹</div>
+        <div class="coupon-copy"><strong>₹100 OFF</strong><span>Partner cafés & restaurants</span><small>VALID AT PARTICIPATING LOCATIONS</small></div>
+        <button class="redeem-btn" data-redeem="₹100 Café Reward">240 CR</button>
+      </div>
+
+      <div class="coupon-card">
+        <div class="coupon-icon">%</div>
+        <div class="coupon-copy"><strong>15% OFF</strong><span>Shopping & lifestyle partners</span><small>UNLOCKS AT 300 CREDITS</small></div>
+        <button class="redeem-btn locked" disabled>300 CR</button>
+      </div>
+
+      <div class="coupon-card">
+        <div class="coupon-icon">◆</div>
+        <div class="coupon-copy"><strong>₹250 OFF</strong><span>Dining & entertainment partners</span><small>UNLOCKS AT 500 CREDITS</small></div>
+        <button class="redeem-btn locked" disabled>500 CR</button>
+      </div>
+
+      <div class="wallet-note">REWARDS ARE ISSUED FOR LEGITIMATE CIVIC PARTICIPATION. DUPLICATE, SPAM OR MANIPULATED REPORTS DO NOT EARN CREDITS.</div>
+    </div>
+
+    <div class="wallet-view" id="activityWallet">
+      <div class="wallet-section-head"><span>CREDIT HISTORY</span><b>RECENT ACTIVITY</b></div>
+      <div class="credit-row"><i class="plus">+20</i><div><strong>Report verified</strong><span>SOGA-2026-000184</span></div><time>Today</time></div>
+      <div class="credit-row"><i class="plus">+10</i><div><strong>Community confirmation</strong><span>SOGA-2026-000176</span></div><time>Yesterday</time></div>
+      <div class="credit-row"><i class="plus">+25</i><div><strong>Issue resolved</strong><span>SOGA-2026-000163</span></div><time>12 Sep</time></div>
+      <div class="credit-row"><i class="minus">−40</i><div><strong>Reward redeemed</strong><span>Partner Café • ₹100 OFF</span></div><time>09 Sep</time></div>
+      <div class="wallet-total"><span>NET CIVIC CREDITS</span><strong>240</strong></div>
+    </div>
+
+    <div class="wallet-view" id="impactWallet">
+      <div class="wallet-section-head"><span>MY CIVIC IMPACT</span><b>CONTRIBUTION</b></div>
+      <div class="impact-grid">
+        <div><strong>18</strong><span>REPORTS</span></div>
+        <div><strong>11</strong><span>VERIFIED</span></div>
+        <div><strong>07</strong><span>CONFIRMED</span></div>
+        <div><strong>03</strong><span>RESOLVED</span></div>
+      </div>
+      <div class="impact-card"><span>CURRENT LEVEL</span><strong>CITY SCOUT</strong><p>Keep contributing useful, verifiable reports to reach <b>CITY SENTINEL</b>.</p></div>
+      <div class="milestones"><div><i class="done"></i><span>First report</span></div><div><i class="done"></i><span>10 reports</span></div><div><i class="done"></i><span>5 verified</span></div><div><i></i><span>25 reports</span></div><div><i></i><span>500 credits</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+ <div class="sheet">
+  <div class="sheet-head"><h3>NEW CIVIC REPORT / <span id="stepNo">01</span></h3><button class="close" id="closeModal">×</button></div><div class="progress"><i id="progress"></i></div>
+  <div class="step active" data-step="1"><h2 class="step-title">What did you find?</h2><p class="step-sub">Choose the issue that best describes what is happening.</p><div class="options">
+   <button class="opt" data-choice="Pothole"><strong>⚠ Pothole</strong><small>ROAD SURFACE / HAZARD</small></button><button class="opt" data-choice="Waterlogging"><strong>≈ Waterlogging</strong><small>FLOODING / DRAINAGE</small></button><button class="opt" data-choice="Road Damage"><strong>▧ Road damage</strong><small>ROAD / INFRASTRUCTURE</small></button><button class="opt" data-choice="Garbage"><strong>▤ Garbage</strong><small>WASTE / SANITATION</small></button><button class="opt" data-choice="Broken Streetlight"><strong>◉ Streetlight</strong><small>PUBLIC LIGHTING</small></button><button class="opt" data-choice="Encroachment"><strong>▥ Encroachment</strong><small>PUBLIC SPACE / OBSTRUCTION</small></button><button class="opt" data-choice="Illegal Construction"><strong>⌂ Illegal construction</strong><small>BUILDING / LAND USE</small></button><button class="opt" data-choice="Other"><strong>＋ Other</strong><small>ANOTHER CIVIC ISSUE</small></button>
+  </div></div>
+  <div class="step" data-step="2"><h2 class="step-title">Add evidence</h2><p class="step-sub">A photo helps the community and authorities understand the issue.</p><div class="upload" id="upload"><div><b>DROP PHOTO HERE</b><span>or use your device camera / gallery</span><br><button class="btn" style="margin-top:12px" id="photoBtn">＋ SELECT PHOTO</button><input id="photoInput" type="file" accept="image/*" capture="environment" hidden></div></div><div class="actions"><button class="btn secondary" onclick="goStep(1)">BACK</button><button class="btn" onclick="goStep(3)">CONTINUE</button></div></div>
+  <div class="step" data-step="3"><h2 class="step-title">Lock the location</h2><p class="step-sub">Confirm the point where the issue was observed.</p><div class="fake-map"><div class="pin"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font:8px ui-monospace,monospace;color:var(--muted)"><span>GPS ACCURACY ±12M</span><span style="color:var(--green)">LOCATION LOCKED</span></div><div class="actions"><button class="btn secondary" onclick="goStep(2)">BACK</button><button class="btn" onclick="goStep(4)">CONFIRM LOCATION</button></div></div>
+  <div class="step" data-step="4"><h2 class="step-title">Tell us what happened</h2><p class="step-sub">Keep it factual. Avoid personal information about other people.</p><input class="field" id="titleInput" placeholder="Short issue title"><textarea class="field" id="descInput" rows="5" placeholder="Describe what you see, where it is, and how it affects the area..."></textarea><div class="actions"><button class="btn secondary" onclick="goStep(3)">BACK</button><button class="btn" onclick="goStep(5)">REVIEW REPORT</button></div></div>
+  <div class="step" data-step="5"><h2 class="step-title">Review before sending</h2><p class="step-sub">Your report enters the verification pipeline before sensitive information is published.</p><div class="meta-box" style="margin-top:10px"><span>CATEGORY</span><b id="reviewCat">ROAD DAMAGE</b><br><span>LOCATION</span><b>GHAZIABAD / APPROXIMATE</b><br><span>EVIDENCE</span><b id="reviewEvidence">1 PHOTO</b><br><span>VISIBILITY</span><b>PUBLIC AFTER REVIEW</b></div><div class="actions"><button class="btn secondary" onclick="goStep(4)">BACK</button><button class="btn" onclick="submitReport()">SUBMIT REPORT</button></div></div>
+  <div class="step" data-step="6"><div class="success"><div class="success-ring">✓</div><div class="eyebrow">REPORT RECEIVED</div><div class="report-id">SOGA-2026-000185</div><p class="muted">Your report has entered the verification pipeline. You can use this ID to track the issue.</p><button class="btn" id="returnMap" style="margin-top:18px;padding:0 18px">RETURN TO WATCH</button></div></div>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let step=1;const modal=document.getElementById('modal');
-function render(){document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',+x.dataset.step===step))}
-function next(){if(step<6){step++;render()}}function prev(){if(step>1){step--;render()}}
-function openReport(){step=1;render();modal.classList.add('show')}
-document.getElementById('reportBtn').onclick=openReport;document.getElementById('navReport').onclick=openReport;
-document.querySelectorAll('.close').forEach(x=>x.onclick=()=>modal.classList.remove('show'));
-document.querySelectorAll('.option').forEach(x=>x.onclick=()=>next());
-function submitReport(){step=6;render()}
-document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on')});
-document.querySelectorAll('.marker').forEach(m=>m.onclick=()=>{document.getElementById('issue').querySelector('.title').textContent=m.dataset.title});
+const accountModal=document.getElementById('accountModal');
+const rewardsModal=document.getElementById('rewardsModal');
+const openAccount=()=>{accountModal.classList.add('open');accountModal.setAttribute('aria-hidden','false')};
+const closeAccount=()=>{accountModal.classList.remove('open');accountModal.setAttribute('aria-hidden','true')};
+const openRewards=()=>{rewardsModal.classList.add('open');rewardsModal.setAttribute('aria-hidden','false')};
+const closeRewards=()=>{rewardsModal.classList.remove('open');rewardsModal.setAttribute('aria-hidden','true')};
+document.getElementById('topProfile')?.addEventListener('click',openAccount);
+document.getElementById('profileNav')?.addEventListener('click',openAccount);
+document.getElementById('closeAccount').onclick=closeAccount;
+document.getElementById('closeRewards').onclick=closeRewards;
+document.querySelectorAll('.auth-tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.auth-view').forEach(x=>x.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.auth+'View').classList.add('active');
+  };
+});
+document.querySelectorAll('.account-submit').forEach(btn=>{
+  btn.onclick=()=>{
+    closeAccount();
+    openRewards();
+    if(typeof toast==='function') toast('DEMO PROFILE CREATED • REWARDS ENABLED');
+  };
+});
+[accountModal,rewardsModal].forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+
+document.querySelectorAll('.wallet-tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.wallet-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.wallet-view').forEach(x=>x.classList.remove('active'));
+    tab.classList.add('active');
+    const target=document.getElementById(tab.dataset.wallet+'Wallet');
+    if(target) target.classList.add('active');
+  };
+});
+document.querySelectorAll('.redeem-btn:not(.locked)').forEach(btn=>{
+  btn.onclick=()=>{
+    const name=btn.dataset.redeem||'Reward';
+    btn.textContent='CLAIMED';
+    btn.disabled=true;
+    btn.classList.add('claimed');
+    if(typeof toast==='function') toast(name.toUpperCase()+' • REDEMPTION CODE GENERATED');
+  };
+});
+
 </script>
-</body></html>
+<script>
+const reports=[
+ {id:'SOGA-2026-000184',cat:'road',title:'Severe road damage on NH24 service road',loc:'Indirapuram',status:'ACTION REQUIRED',severity:'HIGH PRIORITY',time:'8 MIN AGO',confirm:3,lat:28.6438,lng:77.3712,color:'red',desc:'Multiple citizens have reported a dangerous damaged section affecting traffic flow. Evidence is under civic verification.'},
+ {id:'SOGA-2026-000176',cat:'pothole',title:'Deep pothole near Vaishali Metro',loc:'Vaishali',status:'COMMUNITY CONFIRMED',severity:'WARNING',time:'21 MIN AGO',confirm:6,lat:28.6498,lng:77.3392,color:'amber'},
+ {id:'SOGA-2026-000181',cat:'water',title:'Waterlogging after rainfall',loc:'Vasundhara',status:'UNDER REVIEW',severity:'WARNING',time:'34 MIN AGO',confirm:4,lat:28.6631,lng:77.3719,color:'amber'},
+ {id:'SOGA-2026-000179',cat:'garbage',title:'Garbage accumulation at market edge',loc:'Raj Nagar',status:'REPORTED',severity:'MONITOR',time:'41 MIN AGO',confirm:1,lat:28.6895,lng:77.4424,color:'cyan'},
+ {id:'SOGA-2026-000171',cat:'light',title:'Multiple streetlights not functioning',loc:'Sahibabad',status:'ACTION REQUIRED',severity:'HIGH PRIORITY',time:'52 MIN AGO',confirm:8,lat:28.6773,lng:77.3269,color:'red'},
+ {id:'SOGA-2026-000168',cat:'encroach',title:'Footpath obstruction reported',loc:'Loni Road',status:'COMMUNITY CONFIRMED',severity:'WARNING',time:'1 HR AGO',confirm:5,lat:28.7507,lng:77.2804,color:'amber'},
+ {id:'SOGA-2026-000163',cat:'road',title:'Broken divider and damaged pavement',loc:'Crossings Republik',status:'UNDER REVIEW',severity:'MONITOR',time:'1 HR AGO',confirm:2,lat:28.6135,lng:77.4271,color:'cyan'},
+ {id:'SOGA-2026-000157',cat:'water',title:'Blocked drainage near Hindon',loc:'Central Ghaziabad',status:'ACTION REQUIRED',severity:'HIGH PRIORITY',time:'2 HR AGO',confirm:11,lat:28.6667,lng:77.4237,color:'red'}
+];
+let map,markerLayer,selected=reports[0],step=1,choice='Road Damage',photo=false; window.selected=selected;
+function icon(color){return L.divIcon({className:'',html:'<div class="civic-marker '+color+'"></div>',iconSize:[20,20],iconAnchor:[10,10]})}
+function initMap(){
+ map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:11,maxZoom:18,zoomSnap:.5}).setView([28.6692,77.4538],12.5);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+ markerLayer=L.layerGroup().addTo(map);renderMarkers('all');
+}
+function renderMarkers(cat){
+ markerLayer.clearLayers();
+ reports.filter(r=>cat==='all'||r.cat===cat).forEach(r=>{
+  const m=L.marker([r.lat,r.lng],{icon:icon(r.color)}).addTo(markerLayer);
+  m.on('click',()=>selectReport(r));
+ });
+ document.getElementById('layerCount').textContent=String(reports.filter(r=>cat==='all'||r.cat===cat).length).padStart(2,'0')+' ACTIVE';
+}
+function selectReport(r){
+ selected=r; window.selected=r;
+ ['Id','Title','Location','Status','Time','Confirm'].forEach(k=>{
+  const key=k.toLowerCase();
+  const el=document.getElementById('intel'+k);
+  if(el) el.textContent=k==='Confirm'?String(r.confirm).padStart(2,'0')+' CITIZENS':r[key]||'';
+ });
+ document.getElementById('intelSeverity').textContent=r.severity;
+ document.getElementById('intelDesc').textContent=r.desc||'Citizen evidence has entered the civic verification pipeline.';
+}
+function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove('show'),2200)}
+function goStep(n){step=n;document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',+x.dataset.step===n));document.getElementById('stepNo').textContent=String(n).padStart(2,'0');document.getElementById('progress').style.width=(n/6*100)+'%';if(n===5){document.getElementById('reviewCat').textContent=choice.toUpperCase();document.getElementById('reviewEvidence').textContent=photo?'1 PHOTO':'NO PHOTO'}}
+function openModal(){goStep(1);document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function submitReport(){goStep(6);showToast('Report submitted to verification pipeline')}
+document.addEventListener('DOMContentLoaded',()=>{
+ initMap();
+ document.getElementById('mobileReport')?.addEventListener('click',openModal);document.getElementById('closeModal').onclick=closeModal;document.getElementById('returnMap').onclick=closeModal;
+ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');renderMarkers(c.dataset.cat)});
+ document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{document.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');choice=o.dataset.choice;goStep(2)});
+ document.getElementById('photoBtn').onclick=()=>document.getElementById('photoInput').click();
+ document.getElementById('photoInput').onchange=e=>{if(e.target.files.length){photo=true;document.getElementById('upload').innerHTML='<div><b style="color:var(--green)">EVIDENCE READY</b><span>'+e.target.files[0].name+'</span></div>';showToast('Evidence attached')}}
+ document.getElementById('confirmBtn').onclick=()=>{selected.confirm++;document.getElementById('intelConfirm').textContent=String(selected.confirm).padStart(2,'0')+' CITIZENS';showToast('Community confirmation recorded')};
+ document.getElementById('zoomIn').onclick=()=>map.zoomIn();document.getElementById('zoomOut').onclick=()=>map.zoomOut();
+ document.getElementById('locate').onclick=()=>{map.setView([28.6692,77.4538],14);showToast('Centering Ghaziabad intelligence zone')};
+ document.getElementById('searchFocus').onclick=()=>document.getElementById('search').focus();
+ document.getElementById('detailBtn').onclick=()=>showToast('Intelligence view connected to report '+selected.id);
+ document.getElementById('search').oninput=e=>{const q=e.target.value.toLowerCase().trim();const r=reports.find(x=>(x.id+x.title+x.loc).toLowerCase().includes(q));if(r)selectReport(r)};
+});
+</script>
+
+<script>
+/* visual telemetry loop: makes the command surface feel live without touching backend data */
+(function(){
+ const live=document.getElementById('liveCount'), active=document.getElementById('activeCount');
+ if(!live||!active)return;
+ setInterval(()=>{
+   const n=184+Math.floor(Math.random()*3)-1;
+   live.textContent=n;
+   if(Math.random()>.7) active.textContent=67+Math.floor(Math.random()*2);
+ },5200);
+})();
+</script>
+
+<script>
+(function(){
+ const drawer=document.getElementById('intelDrawer');
+ const fill=()=>{
+   if(!window.selected)return;
+   const r=window.selected;
+   document.getElementById('drawerTitle').textContent=r.title;
+   document.getElementById('drawerId').textContent=r.id;
+   document.getElementById('drawerArea').textContent=r.loc;
+   document.getElementById('drawerStatus').textContent=r.status;
+   document.getElementById('drawerSeverity').textContent=r.severity;
+   document.getElementById('drawerConfirm').textContent=String(r.confirm).padStart(2,'0')+' CITIZENS';
+   document.getElementById('drawerTime').textContent=r.time;
+ };
+ window.openIntelligence=function(){fill();drawer.classList.add('open')};
+ document.getElementById('detailBtn').onclick=window.openIntelligence;
+ document.getElementById('closeDrawer').onclick=()=>drawer.classList.remove('open');
+ document.getElementById('drawerCloseBtn').onclick=()=>drawer.classList.remove('open');
+ document.getElementById('drawerConfirmBtn').onclick=()=>{
+   if(window.selected){window.selected.confirm++;fill();document.getElementById('intelConfirm').textContent=String(window.selected.confirm).padStart(2,'0')+' CITIZENS';showToast('Community confirmation recorded')}
+ };
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')drawer.classList.remove('open')});
+ const oldSelect=window.selectReport;
+ if(oldSelect) window.selectReport=function(r){window.selected=r;oldSelect(r)};
+ const z=document.getElementById('zoomReadout');
+ const watch=()=>{if(window.map)z.textContent=window.map.getZoom().toFixed(1)};
+ setTimeout(()=>{
+   if(window.map){window.map.on('zoomend',watch);watch()}
+ },500);
+})();
+</script>
+
+
+</body>
+</html>
