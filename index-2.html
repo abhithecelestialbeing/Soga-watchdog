@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SO.GA WATCHDOG</title>
+<style>
+:root{--bg:#04070a;--cyan:#00eaff;--green:#61ffad;--red:#ff536d;--amber:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#eafcff;font-family:Inter,system-ui,sans-serif}
+body:before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,234,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,234,255,.025) 1px,transparent 1px);background-size:34px 34px;pointer-events:none}
+button,input{font:inherit}.app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(0,234,255,.14);background:rgba(3,7,10,.86);backdrop-filter:blur(18px);z-index:10}
+.logo{font-weight:850;letter-spacing:.17em}.logo b{color:var(--cyan)}.live{font:10px monospace;letter-spacing:.14em;color:var(--green)}.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);margin-right:7px}
+main{position:relative;flex:1;min-height:0}.map{position:absolute;inset:0;background:radial-gradient(circle at 55% 45%,rgba(0,234,255,.13),transparent 22%),linear-gradient(135deg,#071014,#111b1d 48%,#050b0e)}
+.map:after{content:"GHAZIABAD • 28.6692 N 77.4538 E";position:absolute;right:18px;bottom:18px;color:rgba(160,210,220,.35);font:9px monospace;letter-spacing:.12em}
+.roads{position:absolute;inset:-20%;opacity:.55;background:repeating-linear-gradient(29deg,transparent 0 55px,rgba(180,230,235,.065) 56px 59px,transparent 60px 120px),repeating-linear-gradient(151deg,transparent 0 91px,rgba(180,230,235,.045) 92px 95px,transparent 96px 160px)}
+.river{position:absolute;width:180%;height:85px;left:-35%;top:58%;transform:rotate(-12deg);background:rgba(0,150,180,.13);border-top:1px solid rgba(0,234,255,.18);border-bottom:1px solid rgba(0,234,255,.08)}
+.scan{position:absolute;left:0;right:0;top:20%;height:1px;background:var(--cyan);opacity:.25;box-shadow:0 0 22px var(--cyan);animation:scan 6s linear infinite}@keyframes scan{to{top:88%}}
+.marker{position:absolute;width:17px;height:17px;border:2px solid var(--cyan);border-radius:50%;background:#06151a;box-shadow:0 0 0 7px rgba(0,234,255,.06),0 0 20px var(--cyan);cursor:pointer;z-index:3}.marker:hover{transform:scale(1.25)}.red{border-color:var(--red);box-shadow:0 0 0 7px rgba(255,83,109,.07),0 0 20px var(--red)}.amber{border-color:var(--amber);box-shadow:0 0 0 7px rgba(255,200,87,.07),0 0 20px var(--amber)}
+.m1{left:25%;top:31%}.m2{left:59%;top:39%}.m3{left:73%;top:56%}.m4{left:43%;top:67%}.m5{left:79%;top:27%}.m6{left:18%;top:63%}
+.panel{background:rgba(4,10,14,.76);border:1px solid rgba(0,234,255,.17);border-radius:12px;box-shadow:0 12px 45px rgba(0,0,0,.4),inset 0 0 25px rgba(0,234,255,.025);backdrop-filter:blur(15px)}
+.stats{position:absolute;left:16px;top:16px;display:flex;z-index:4}.stat{padding:11px 15px;border-right:1px solid rgba(255,255,255,.07)}.num{font:700 19px monospace;color:var(--cyan)}.label{font:9px monospace;color:#70858d;letter-spacing:.12em;margin-top:3px}
+.filters{position:absolute;left:16px;right:16px;top:83px;padding:8px;display:flex;gap:7px;overflow:auto;z-index:4}.chip{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.025);color:#8da2a8;border-radius:99px;padding:7px 10px;font:9px monospace;white-space:nowrap;cursor:pointer}.chip.on{color:var(--cyan);border-color:rgba(0,234,255,.45);background:rgba(0,234,255,.07)}
+.issue{position:absolute;right:17px;bottom:18px;width:315px;padding:15px;z-index:4}.eyebrow{font:9px monospace;color:var(--cyan);letter-spacing:.15em}.title{font-weight:750;margin:7px 0}.meta{font:9px monospace;color:#73888f;line-height:1.8}.status{display:inline-block;margin-top:9px;border:1px solid rgba(255,200,87,.4);color:var(--amber);padding:5px 7px;border-radius:5px;font:9px monospace}
+.report{position:absolute;left:17px;bottom:18px;padding:12px 15px;background:#06151a;border:1px solid rgba(0,234,255,.5);color:#dffcff;border-radius:9px;font:10px monospace;letter-spacing:.09em;cursor:pointer;z-index:5}.report:hover{box-shadow:0 0 25px rgba(0,234,255,.15)}
+nav{display:none}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:30;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.dialog{width:min(500px,100%);padding:20px}.dialog h2{font:700 17px monospace;color:var(--cyan);margin:0 0 16px}.step{display:none}.step.active{display:block}.options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.option{padding:13px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.025);color:#c9dde1;text-align:left;cursor:pointer}.option:hover{border-color:var(--cyan)}.field{width:100%;padding:11px;border:1px solid rgba(255,255,255,.1);background:#050a0d;color:white;border-radius:8px;outline:0;margin:6px 0 12px}.actions{display:flex;justify-content:space-between;margin-top:14px}.act{padding:9px 13px;border-radius:7px;border:1px solid rgba(0,234,255,.35);background:rgba(0,234,255,.06);color:var(--cyan);cursor:pointer;font:10px monospace}.success{text-align:center;padding:25px}.success .id{font:700 21px monospace;color:var(--green);margin:15px 0}
+@media(max-width:700px){header{height:60px;padding:0 13px}.stats{left:9px;right:9px;top:9px;overflow:auto}.stat{min-width:91px;padding:9px 11px}.num{font-size:16px}.filters{left:9px;right:9px;top:76px}.issue{left:9px;right:9px;bottom:69px;width:auto}.report{left:9px;bottom:69px;transform:translateY(-125px)}nav{display:flex;position:absolute;left:0;right:0;bottom:0;height:58px;background:rgba(3,7,10,.95);border-top:1px solid rgba(0,234,255,.13);z-index:20;justify-content:space-around;align-items:center}nav button{background:none;border:0;color:#72868d;font:9px monospace}nav button b{display:block;font-size:16px;margin-bottom:2px}nav button.active{color:var(--cyan)}.options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">SO.GA <b>WATCHDOG</b></div><div class="live"><i></i>LIVE GHAZIABAD</div></header>
+<main>
+<div class="map"><div class="roads"></div><div class="river"></div><div class="scan"></div>
+<div class="marker m1" data-title="Pothole — NH24 Service Road"></div><div class="marker red m2" data-title="Severe road damage"></div><div class="marker amber m3" data-title="Waterlogging reported"></div><div class="marker m4" data-title="Garbage accumulation"></div><div class="marker red m5" data-title="Broken streetlights"></div><div class="marker amber m6" data-title="Encroachment reported"></div></div>
+<div class="panel stats"><div class="stat"><div class="num">184</div><div class="label">LIVE REPORTS</div></div><div class="stat"><div class="num">67</div><div class="label">ACTIVE ISSUES</div></div><div class="stat"><div class="num">12</div><div class="label">RESOLVED TODAY</div></div><div class="stat"><div class="num">231</div><div class="label">CITIZEN REPORTS</div></div></div>
+<div class="panel filters"><button class="chip on">ALL</button><button class="chip">POTHOLE</button><button class="chip">WATERLOGGING</button><button class="chip">GARBAGE</button><button class="chip">STREETLIGHT</button><button class="chip">ENCROACHMENT</button><button class="chip">ROAD DAMAGE</button></div>
+<button class="report" id="reportBtn">＋ REPORT AN ISSUE</button>
+<section class="panel issue" id="issue"><div class="eyebrow">SOGA-2026-000184</div><div class="title">Severe road damage</div><div class="meta">28.66920° N · 77.45380° E<br>REPORTED 8 MIN AGO<br>3 CITIZENS CONFIRMED</div><div class="status">ACTION REQUIRED</div></section>
+<nav><button class="active"><b>⌖</b>MAP</button><button id="navReport"><b>＋</b>REPORT</button><button><b>≡</b>ACTIVITY</button><button><b>◉</b>PROFILE</button></nav>
+</main></div>
+<div class="modal" id="modal"><div class="dialog panel">
+<div class="step active" data-step="1"><h2>NEW CIVIC REPORT / 01</h2><div class="options"><button class="option">Pothole</button><button class="option">Waterlogging</button><button class="option">Road damage</button><button class="option">Garbage</button><button class="option">Broken streetlight</button><button class="option">Encroachment</button><button class="option">Illegal construction</button><button class="option">Suspected illegal activity</button></div><div class="actions"><span></span><button class="act close">CANCEL</button></div></div>
+<div class="step" data-step="2"><h2>ADD EVIDENCE / 02</h2><p style="color:#8da2a8;font-size:13px">Demo mode: photo capture/upload interface.</p><button class="act" onclick="next()">＋ SELECT PHOTO</button><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">CONTINUE</button></div></div>
+<div class="step" data-step="3"><h2>LOCATION / 03</h2><p style="color:#8da2a8;font-size:13px">GPS location captured. Confirm the point on the map.</p><div style="height:130px;border:1px solid rgba(0,234,255,.18);border-radius:9px;background:radial-gradient(circle,#07333a,#071014);display:grid;place-items:center;color:var(--cyan);font:11px monospace">◎ 28.66920 N / 77.45380 E</div><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">CONTINUE</button></div></div>
+<div class="step" data-step="4"><h2>REPORT DETAILS / 04</h2><input class="field" placeholder="Short title"><textarea class="field" rows="4" placeholder="Describe what you see..."></textarea><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="next()">REVIEW</button></div></div>
+<div class="step" data-step="5"><h2>REVIEW / 05</h2><p style="color:#b9cdd1;font-size:13px">Your report will be published as evidence-based civic information. Sensitive reports are moderated before public display.</p><div class="panel" style="padding:12px;font:10px monospace;color:#82969d">CATEGORY: ROAD DAMAGE<br>LOCATION: GHAZIABAD<br>EVIDENCE: 1 PHOTO<br>VISIBILITY: PUBLIC AFTER REVIEW</div><div class="actions"><button class="act" onclick="prev()">BACK</button><button class="act" onclick="submitReport()">SUBMIT REPORT</button></div></div>
+<div class="step" data-step="6"><div class="success"><h2>REPORT RECEIVED</h2><div class="id">SOGA-2026-000185</div><p style="color:#8da2a8">Your report has entered the verification pipeline.</p><button class="act close">RETURN TO MAP</button></div></div>
+</div></div>
+<script>
+let step=1;const modal=document.getElementById('modal');
+function render(){document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',+x.dataset.step===step))}
+function next(){if(step<6){step++;render()}}function prev(){if(step>1){step--;render()}}
+function openReport(){step=1;render();modal.classList.add('show')}
+document.getElementById('reportBtn').onclick=openReport;document.getElementById('navReport').onclick=openReport;
+document.querySelectorAll('.close').forEach(x=>x.onclick=()=>modal.classList.remove('show'));
+document.querySelectorAll('.option').forEach(x=>x.onclick=()=>next());
+function submitReport(){step=6;render()}
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on')});
+document.querySelectorAll('.marker').forEach(m=>m.onclick=()=>{document.getElementById('issue').querySelector('.title').textContent=m.dataset.title});
+</script>
+</body></html>
